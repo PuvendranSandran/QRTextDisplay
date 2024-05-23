@@ -31,10 +31,13 @@
         .content {
             font-size: 18px;
             margin-bottom: 20px;
-            padding: 10px;
+            padding: 20px;
             border: 1px solid #ddd;
             border-radius: 4px;
             background-color: #fafafa;
+            min-height: 100px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
         .buttons {
             display: flex;
@@ -55,25 +58,6 @@
             background-color: #008cba;
             color: white;
         }
-        .history {
-            margin-top: 20px;
-            text-align: left;
-        }
-        .history h2 {
-            font-size: 20px;
-            margin-bottom: 10px;
-        }
-        .history ul {
-            list-style: none;
-            padding: 0;
-        }
-        .history li {
-            background-color: #f9f9f9;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            margin-bottom: 5px;
-        }
     </style>
 </head>
 <body>
@@ -83,10 +67,6 @@
         <div class="buttons">
             <button class="copy-btn" onclick="copyText()">Copy Text</button>
             <button class="edit-btn" onclick="editText()">Edit Text</button>
-        </div>
-        <div class="history">
-            <h2>View History</h2>
-            <ul id="history-list"></ul>
         </div>
     </div>
 
@@ -110,22 +90,13 @@
             const newText = prompt("Edit the text:", content.innerText);
             if (newText !== null) {
                 content.innerText = newText;
-                addToHistory(newText);
             }
-        }
-
-        function addToHistory(text) {
-            const historyList = document.getElementById("history-list");
-            const newItem = document.createElement("li");
-            newItem.innerText = text;
-            historyList.appendChild(newItem);
         }
 
         document.addEventListener("DOMContentLoaded", () => {
             const text = getQueryParam("text");
             if (text) {
                 document.getElementById("content").innerText = text;
-                addToHistory(text);
             } else {
                 document.getElementById("content").innerText = "No text found!";
             }
