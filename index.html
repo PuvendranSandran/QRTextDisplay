@@ -4,9 +4,91 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Text Display</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            padding: 20px;
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .content {
+            font-size: 18px;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #fafafa;
+        }
+        .buttons {
+            display: flex;
+            justify-content: space-around;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .copy-btn {
+            background-color: #4caf50;
+            color: white;
+        }
+        .edit-btn {
+            background-color: #008cba;
+            color: white;
+        }
+        .history {
+            margin-top: 20px;
+            text-align: left;
+        }
+        .history h2 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        .history ul {
+            list-style: none;
+            padding: 0;
+        }
+        .history li {
+            background-color: #f9f9f9;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+    </style>
 </head>
 <body>
-    <div id="content"></div>
+    <div class="container">
+        <h1>QR Text Display</h1>
+        <div id="content" class="content"></div>
+        <div class="buttons">
+            <button class="copy-btn" onclick="copyText()">Copy Text</button>
+            <button class="edit-btn" onclick="editText()">Edit Text</button>
+        </div>
+        <div class="history">
+            <h2>View History</h2>
+            <ul id="history-list"></ul>
+        </div>
+    </div>
 
     <script>
         function getQueryParam(param) {
@@ -14,10 +96,36 @@
             return urlParams.get(param);
         }
 
+        function copyText() {
+            const content = document.getElementById("content").innerText;
+            navigator.clipboard.writeText(content).then(() => {
+                alert("Text copied to clipboard!");
+            }).catch(err => {
+                alert("Failed to copy text: ", err);
+            });
+        }
+
+        function editText() {
+            const content = document.getElementById("content");
+            const newText = prompt("Edit the text:", content.innerText);
+            if (newText !== null) {
+                content.innerText = newText;
+                addToHistory(newText);
+            }
+        }
+
+        function addToHistory(text) {
+            const historyList = document.getElementById("history-list");
+            const newItem = document.createElement("li");
+            newItem.innerText = text;
+            historyList.appendChild(newItem);
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             const text = getQueryParam("text");
             if (text) {
                 document.getElementById("content").innerText = text;
+                addToHistory(text);
             } else {
                 document.getElementById("content").innerText = "No text found!";
             }
