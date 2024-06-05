@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Text Display</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
+        /* Add your styles here */
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f9;
@@ -71,6 +73,17 @@
     </div>
 
     <script>
+        const secretKey = "Puvendran1221303596@FYP";
+
+        function encrypt(text) {
+            return CryptoJS.AES.encrypt(text, secretKey).toString();
+        }
+
+        function decrypt(text) {
+            const bytes = CryptoJS.AES.decrypt(text, secretKey);
+            return bytes.toString(CryptoJS.enc.Utf8);
+        }
+
         function getQueryParam(param) {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(param);
@@ -89,14 +102,24 @@
             const content = document.getElementById("content");
             const newText = prompt("Edit the text:", content.innerText);
             if (newText !== null) {
+                const encryptedText = encrypt(newText);
                 content.innerText = newText;
+                // Update URL with encrypted text
+                const newUrl = new URL(window.location.href);
+                newUrl.searchParams.set("text", encryptedText);
+                window.history.pushState({}, '', newUrl);
             }
         }
 
         document.addEventListener("DOMContentLoaded", () => {
-            const text = getQueryParam("text");
-            if (text) {
-                document.getElementById("content").innerText = text;
+            const encryptedText = getQueryParam("text");
+            if (encryptedText) {
+                try {
+                    const decryptedText = decrypt(encryptedText);
+                    document.getElementById("content").innerText = decryptedText;
+                } catch (e) {
+                    document.getElementById("content").innerText = "Invalid encrypted text!";
+                }
             } else {
                 document.getElementById("content").innerText = "No text found!";
             }
