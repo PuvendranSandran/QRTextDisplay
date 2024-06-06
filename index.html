@@ -3,88 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Text Display & Editor</title>
+    <title>QR Text Display</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f7f7f7;
-            color: #333;
-            text-align: center;
-            padding: 20px;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
-        #displayText {
+        .container {
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            padding: 20px;
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+        }
+        h1 {
             font-size: 24px;
             margin-bottom: 20px;
         }
-        #textInput {
-            width: 80%;
-            padding: 10px;
-            font-size: 16px;
-            border: 2px solid #ccc;
-            border-radius: 5px;
+        .content {
+            font-size: 18px;
             margin-bottom: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #fafafa;
+            min-height: 100px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
-        #editButton {
+        .buttons {
+            display: flex;
+            justify-content: space-around;
+        }
+        button {
             padding: 10px 20px;
             font-size: 16px;
-            background-color: #4CAF50;
-            color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
+        }
+        .copy-btn {
+            background-color: #4caf50;
+            color: white;
+        }
+        .edit-btn {
+            background-color: #008cba;
+            color: white;
         }
     </style>
 </head>
 <body>
-    <h1>Welcome to Text Display & Editor</h1>
-    
-    <!-- Display the text content from URL parameter -->
-    <div id="displayText"></div>
-
-    <!-- Input field for editing text -->
-    <textarea id="textInput" placeholder="Enter or edit text"></textarea>
-    
-    <!-- Button to update the displayed text -->
-    <button id="editButton">Update Text</button>
+    <div class="container">
+        <h1>QR Text Display</h1>
+        <div id="content" class="content"></div>
+        <div class="buttons">
+            <button class="copy-btn" onclick="copyText()">Copy Text</button>
+            <button class="edit-btn" onclick="editText()">Edit Text</button>
+        </div>
+    </div>
 
     <script>
-        // Function to extract text from URL parameter
-        function getTextFromUrl() {
+        const AES_KEY = "YourSecretKey123"; // Must match the key used in the Android app
+
+        function getQueryParam(param) {
             const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get('text');
+            return urlParams.get(param);
         }
 
-        // Function to update displayed text with the provided text
-        function updateDisplayedText(text) {
-            const displayTextElement = document.getElementById('displayText');
-            displayTextElement.textContent = text;
-        }
-
-        // Function to handle editing and updating text
-        function handleTextEditing() {
-            const textInput = document.getElementById('textInput');
-            const editButton = document.getElementById('editButton');
-
-            // Set initial text content from URL parameter
-            let initialText = getTextFromUrl();
-            updateDisplayedText(initialText);
-            textInput.value = initialText;
-
-            // Event listener for edit button click
-            editButton.addEventListener('click', () => {
-                const newText = textInput.value.trim();
-                updateDisplayedText(newText);
-                
-                // Update URL parameter with new text (optional)
-                const urlParams = new URLSearchParams(window.location.search);
-                urlParams.set('text', newText);
-                const newUrl = window.location.pathname + '?' + urlParams.toString();
-                history.pushState({}, '', newUrl);
+        function copyText() {
+            const content = document.getElementById("content").innerText;
+            navigator.clipboard.writeText(content).then(() => {
+                alert("Text copied to clipboard!");
+            }).catch(err => {
+                alert("Failed to copy text: ", err);
             });
         }
 
-        // Call the text editing function when the page loads
-        document.addEventListener('DOMContentLoaded', handleTextEditing);
+        function editText() {
+            const content = document.getElementById("content");
+            const newText = prompt("Edit the text:", content.innerText);
+            if (newText !== null) {
+                content.innerText = newText;
+            }
+        }
+
+        async function decryptText(encryptedText, key) {
+            const decoder = new TextDecoder();
+            const encodedKey = new TextEncoder().encode(key);
+            const cryptoKey = await crypto.subtle.importKey("raw", encodedKey, { name: "AES-CBC" }, false, ["decrypt"]);
+            const iv = new Uint8Array(16); // AES-CBC needs a 16-byte IV
+            const encryptedData = Uint8Array.from(atob(encryptedText), c => c.charCodeAt(0));
+            const decryptedData = await crypto.subtle.decrypt({ name: "AES-CBC", iv }, cryptoKey, encryptedData);
+            return decoder.decode(decryptedData);
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            const encryptedText = getQueryParam("text");
+            if (encryptedText) {
+                try {
+                    const decryptedText = await decryptText(encryptedText, AES_KEY);
+                    document.getElementById("content").innerText = decryptedText;
+                } catch (err) {
+                    console.error("Decryption error", err);
+                    document.getElementById("content").innerText = "Failed to decrypt text.";
+                }
+            } else {
+                document.getElementById("content").innerText = "No text found!";
+            }
+        });
     </script>
 </body>
 </html>
