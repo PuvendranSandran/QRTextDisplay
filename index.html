@@ -72,6 +72,7 @@
 
     <script>
         const AES_KEY = "YourSecretKey123"; // Must match the key used in the Android app
+        const IV_SIZE = 16; // AES block size
 
         function getQueryParam(param) {
             const urlParams = new URLSearchParams(window.location.search);
@@ -99,9 +100,10 @@
             const decoder = new TextDecoder();
             const encodedKey = new TextEncoder().encode(key);
             const cryptoKey = await crypto.subtle.importKey("raw", encodedKey, { name: "AES-CBC" }, false, ["decrypt"]);
-            const iv = new Uint8Array(16); // AES-CBC needs a 16-byte IV
             const encryptedData = Uint8Array.from(atob(encryptedText), c => c.charCodeAt(0));
-            const decryptedData = await crypto.subtle.decrypt({ name: "AES-CBC", iv }, cryptoKey, encryptedData);
+            const iv = encryptedData.slice(0, IV_SIZE);
+            const encryptedValue = encryptedData.slice(IV_SIZE);
+            const decryptedData = await crypto.subtle.decrypt({ name: "AES-CBC", iv }, cryptoKey, encryptedValue);
             return decoder.decode(decryptedData);
         }
 
