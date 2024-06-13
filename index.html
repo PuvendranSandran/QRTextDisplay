@@ -36,7 +36,7 @@
             border-radius: 4px;
             background-color: #fafafa;
             min-height: 100px;
-            white-space: pre-wrap;
+            white-space: pre-wrap; /* Handles multiline text */
             word-wrap: break-word;
         }
         .buttons {
@@ -71,7 +71,7 @@
     </div>
 
     <script>
-        const AES_KEY = "1221303596001123"; // My Key
+        const AES_KEY = "1221303596001123"; // AES Code
         const IV_SIZE = 16; // AES block size
 
         function getQueryParam(param) {
